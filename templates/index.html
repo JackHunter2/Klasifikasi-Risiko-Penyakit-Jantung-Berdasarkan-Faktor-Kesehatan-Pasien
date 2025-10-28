@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Aplikasi web untuk memprediksi risiko penyakit jantung berdasarkan faktor kesehatan pasien menggunakan machine learning">
+    <meta name="keywords" content="penyakit jantung, prediksi, machine learning, kesehatan, medis">
+    <meta name="author" content="Heart Disease Classifier">
+    <title>Klasifikasi Risiko Penyakit Jantung</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫀</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🫀 Klasifikasi Risiko Penyakit Jantung</h1>
+            <p>Masukkan data kesehatan pasien untuk memprediksi risiko penyakit jantung</p>
+        </div>
+        
+        <div class="form-container">
+            <!-- Progress Indicator -->
+            <div class="progress-steps">
+                <div class="step active">1</div>
+                <div class="step">2</div>
+                <div class="step">3</div>
+                <div class="step">4</div>
+            </div>
+            
+            <form action="/predict" method="post" id="heartForm">
+                {% if errors and errors.get('general') %}
+                <div class="error-box">{{ errors.get('general') }}</div>
+                {% endif %}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="age">Usia <span class="required">*</span></label>
+                        <input type="number" id="age" name="age" min="1" max="120" required value="{{ (inputs.age if inputs and inputs.get('age') else '') }}">
+                        <div class="field-description">Usia dalam tahun</div>
+                        {% if errors and errors.get('age') %}<div class="error-text">{{ errors.get('age') }}</div>{% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sex">Jenis Kelamin <span class="required">*</span></label>
+                        <select id="sex" name="sex" required>
+                            <option value="">Pilih Jenis Kelamin</option>
+                            <option value="0" {% if inputs and inputs.get('sex')=='0' %}selected{% endif %}>Perempuan (0)</option>
+                            <option value="1" {% if inputs and inputs.get('sex')=='1' %}selected{% endif %}>Laki-laki (1)</option>
+                        </select>
+                        {% if errors and errors.get('sex') %}<div class="error-text">{{ errors.get('sex') }}</div>{% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cp">Jenis Nyeri Dada <span class="required">*</span></label>
+                        <select id="cp" name="cp" required>
+                            <option value="">Pilih Jenis Nyeri</option>
+                            <option value="0" {% if inputs and inputs.get('cp')=='0' %}selected{% endif %}>Tidak ada nyeri (0)</option>
+                            <option value="1" {% if inputs and inputs.get('cp')=='1' %}selected{% endif %}>Nyeri tipikal (1)</option>
+                            <option value="2" {% if inputs and inputs.get('cp')=='2' %}selected{% endif %}>Nyeri atipikal (2)</option>
+                            <option value="3" {% if inputs and inputs.get('cp')=='3' %}selected{% endif %}>Nyeri non-anginal (3)</option>
+                        </select>
+                        {% if errors and errors.get('cp') %}<div class="error-text">{{ errors.get('cp') }}</div>{% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="trestbps">Tekanan Darah Istirahat <span class="required">*</span></label>
+                        <input type="number" id="trestbps" name="trestbps" min="50" max="300" required value="{{ (inputs.trestbps if inputs and inputs.get('trestbps') else '') }}">
+                        <div class="field-description">mmHg (contoh: 120)</div>
+                        {% if errors and errors.get('trestbps') %}<div class="error-text">{{ errors.get('trestbps') }}</div>{% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="chol">Kolesterol Serum <span class="required">*</span></label>
+                        <input type="number" id="chol" name="chol" min="100" max="600" required value="{{ (inputs.chol if inputs and inputs.get('chol') else '') }}">
+                        <div class="field-description">mg/dl (contoh: 200)</div>
+                        {% if errors and errors.get('chol') %}<div class="error-text">{{ errors.get('chol') }}</div>{% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fbs">Gula Darah Puasa (FBS) <span class="required">*</span></label>
+                        <select id="fbs" name="fbs" required>
+                            <option value="">Pilih</option>
+                            <option value="0" {% if inputs and inputs.get('fbs')=='0' %}selected{% endif %}><= 120 mg/dl (0)</option>
+                            <option value="1" {% if inputs and inputs.get('fbs')=='1' %}selected{% endif %}>> 120 mg/dl (1)</option>
+                        </select>
+                        <div class="field-description">Apakah gula darah puasa > 120 mg/dl</div>
+                        {% if errors and errors.get('fbs') %}<div class="error-text">{{ errors.get('fbs') }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="thalach">Detak Jantung Maksimal <span class="required">*</span></label>
+                        <input type="number" id="thalach" name="thalach" min="60" max="220" required value="{{ (inputs.thalach if inputs and inputs.get('thalach') else '') }}">
+                        <div class="field-description">bpm (contoh: 150)</div>
+                        {% if errors and errors.get('thalach') %}<div class="error-text">{{ errors.get('thalach') }}</div>{% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="restecg">Resting ECG <span class="required">*</span></label>
+                        <select id="restecg" name="restecg" required>
+                            <option value="">Pilih</option>
+                            <option value="0" {% if inputs and inputs.get('restecg')=='0' %}selected{% endif %}>Normal (0)</option>
+                            <option value="1" {% if inputs and inputs.get('restecg')=='1' %}selected{% endif %}>Abnormalitas gelombang ST-T (1)</option>
+                            <option value="2" {% if inputs and inputs.get('restecg')=='2' %}selected{% endif %}>Hipertrofi ventrikel kiri (2)</option>
+                        </select>
+                        {% if errors and errors.get('restecg') %}<div class="error-text">{{ errors.get('restecg') }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="exang">Angina Induksi Latihan <span class="required">*</span></label>
+                        <select id="exang" name="exang" required>
+                            <option value="">Pilih</option>
+                            <option value="0" {% if inputs and inputs.get('exang')=='0' %}selected{% endif %}>Tidak (0)</option>
+                            <option value="1" {% if inputs and inputs.get('exang')=='1' %}selected{% endif %}>Ya (1)</option>
+                        </select>
+                        {% if errors and errors.get('exang') %}<div class="error-text">{{ errors.get('exang') }}</div>{% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="oldpeak">Depresi ST <span class="required">*</span></label>
+                        <input type="number" id="oldpeak" name="oldpeak" min="0" max="10" step="0.1" required value="{{ (inputs.oldpeak if inputs and inputs.get('oldpeak') else '') }}">
+                        <div class="field-description">Nilai 0-10</div>
+                        {% if errors and errors.get('oldpeak') %}<div class="error-text">{{ errors.get('oldpeak') }}</div>{% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="slope">Kemiringan Segmen ST <span class="required">*</span></label>
+                        <select id="slope" name="slope" required>
+                            <option value="">Pilih Kemiringan</option>
+                            <option value="0" {% if inputs and inputs.get('slope')=='0' %}selected{% endif %}>Menurun (0)</option>
+                            <option value="1" {% if inputs and inputs.get('slope')=='1' %}selected{% endif %}>Datar (1)</option>
+                            <option value="2" {% if inputs and inputs.get('slope')=='2' %}selected{% endif %}>Menaik (2)</option>
+                        </select>
+                        {% if errors and errors.get('slope') %}<div class="error-text">{{ errors.get('slope') }}</div>{% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ca">Jumlah Pembuluh Darah Utama <span class="required">*</span></label>
+                        <select id="ca" name="ca" required>
+                            <option value="">Pilih Jumlah</option>
+                            <option value="0" {% if inputs and inputs.get('ca')=='0' %}selected{% endif %}>0</option>
+                            <option value="1" {% if inputs and inputs.get('ca')=='1' %}selected{% endif %}>1</option>
+                            <option value="2" {% if inputs and inputs.get('ca')=='2' %}selected{% endif %}>2</option>
+                            <option value="3" {% if inputs and inputs.get('ca')=='3' %}selected{% endif %}>3</option>
+                        </select>
+                        {% if errors and errors.get('ca') %}<div class="error-text">{{ errors.get('ca') }}</div>{% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="thal">Thalassemia <span class="required">*</span></label>
+                    <select id="thal" name="thal" required>
+                        <option value="">Pilih Thalassemia</option>
+                        <option value="0" {% if inputs and inputs.get('thal')=='0' %}selected{% endif %}>Normal (0)</option>
+                        <option value="1" {% if inputs and inputs.get('thal')=='1' %}selected{% endif %}>Fixed defect (1)</option>
+                        <option value="2" {% if inputs and inputs.get('thal')=='2' %}selected{% endif %}>Reversible defect (2)</option>
+                    </select>
+                    {% if errors and errors.get('thal') %}<div class="error-text">{{ errors.get('thal') }}</div>{% endif %}
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <button type="submit" class="submit-btn" style="flex: 1;">🔍 Prediksi Risiko Penyakit Jantung</button>
+                    <button type="button" onclick="fillSampleData()" class="btn btn-secondary" style="padding: 15px 25px; white-space: nowrap;">📋 Data Contoh</button>
+                </div>
+  </form>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

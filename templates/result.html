@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hasil prediksi risiko penyakit jantung berdasarkan data kesehatan pasien">
+    <meta name="keywords" content="hasil prediksi, penyakit jantung, risiko kesehatan">
+    <title>Hasil Prediksi - Klasifikasi Risiko Penyakit Jantung</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫀</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🫀 Hasil Prediksi Risiko Penyakit Jantung</h1>
+        </div>
+        
+        <div class="result-container">
+            {% if 'Berisiko' in result %}
+            <div class="prediction-card risiko">
+                <div class="prediction-title risiko">⚠️ {{ result }}</div>
+                {% if proba %}
+                <div class="confidence-bar">
+                    <div class="confidence-fill risiko" style="width: {{ (proba * 100) | round(1) }}%">
+                        {{ (proba * 100) | round(1) }}%
+                    </div>
+                </div>
+                <div class="confidence-text">
+                    Tingkat Keyakinan: {{ (proba * 100) | round(1) }}%
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="warning-box">
+                <h4>⚠️ Peringatan Penting</h4>
+                <p>Berdasarkan data yang dimasukkan, pasien menunjukkan indikasi risiko penyakit jantung. 
+                <strong>Segera konsultasikan dengan dokter spesialis jantung</strong> untuk pemeriksaan lebih lanjut 
+                dan penanganan yang tepat.</p>
+            </div>
+            
+            {% else %}
+            <div class="prediction-card tidak-risiko">
+                <div class="prediction-title tidak-risiko">✅ {{ result }}</div>
+                {% if proba %}
+                <div class="confidence-bar">
+                    <div class="confidence-fill tidak-risiko" style="width: {{ (proba * 100) | round(1) }}%">
+                        {{ (proba * 100) | round(1) }}%
+                    </div>
+                </div>
+                <div class="confidence-text">
+                    Tingkat Keyakinan: {{ (proba * 100) | round(1) }}%
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="warning-box">
+                <h4>💡 Saran Kesehatan</h4>
+                <p>Meskipun prediksi menunjukkan risiko rendah, tetap jaga pola hidup sehat dengan 
+                olahraga teratur, makan makanan bergizi, dan rutin melakukan pemeriksaan kesehatan.</p>
+            </div>
+            {% endif %}
+            
+            <div class="input-summary">
+                <h3>📋 Data yang Dimasukkan</h3>
+                <div class="input-grid">
+                    <div class="input-item">
+                        <div class="input-label">Usia</div>
+                        <div class="input-value">{{ inputs.age }} tahun</div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Jenis Kelamin</div>
+                        <div class="input-value">
+                            {% if inputs.sex == '1' %}Laki-laki{% else %}Perempuan{% endif %}
+                        </div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Jenis Nyeri Dada</div>
+                        <div class="input-value">
+                            {% if inputs.cp == '0' %}Tidak ada nyeri
+                            {% elif inputs.cp == '1' %}Nyeri tipikal
+                            {% elif inputs.cp == '2' %}Nyeri atipikal
+                            {% else %}Nyeri non-anginal{% endif %}
+                        </div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Tekanan Darah Istirahat</div>
+                        <div class="input-value">{{ inputs.trestbps }} mmHg</div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Kolesterol Serum</div>
+                        <div class="input-value">{{ inputs.chol }} mg/dl</div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Gula Darah Puasa (FBS)</div>
+                        <div class="input-value">{% if inputs.fbs == '1' %}> 120 mg/dl{% else %}<= 120 mg/dl{% endif %}</div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Detak Jantung Maksimal</div>
+                        <div class="input-value">{{ inputs.thalach }} bpm</div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Resting ECG</div>
+                        <div class="input-value">
+                            {% if inputs.restecg == '0' %}Normal
+                            {% elif inputs.restecg == '1' %}Abnormalitas gelombang ST-T
+                            {% else %}Hipertrofi ventrikel kiri{% endif %}
+                        </div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Angina Induksi Latihan</div>
+                        <div class="input-value">
+                            {% if inputs.exang == '1' %}Ya{% else %}Tidak{% endif %}
+                        </div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Depresi ST</div>
+                        <div class="input-value">{{ inputs.oldpeak }}</div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Kemiringan Segmen ST</div>
+                        <div class="input-value">
+                            {% if inputs.slope == '0' %}Menurun
+                            {% elif inputs.slope == '1' %}Datar
+                            {% else %}Menaik{% endif %}
+                        </div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Jumlah Pembuluh Darah Utama</div>
+                        <div class="input-value">{{ inputs.ca }}</div>
+                    </div>
+                    <div class="input-item">
+                        <div class="input-label">Thalassemia</div>
+                        <div class="input-value">
+                            {% if inputs.thal == '0' %}Normal
+                            {% elif inputs.thal == '1' %}Fixed defect
+                            {% else %}Reversible defect{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary">🔄 Prediksi Pasien Lain</a>
+                <button onclick="window.print()" class="btn btn-secondary">🖨️ Cetak Hasil</button>
+                <button onclick="shareResults()" class="btn btn-secondary">📤 Bagikan Hasil</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
